@@ -1,7 +1,7 @@
 {
 	"version": 3,
 	"file": "styles.css",
-	"sourceRoot": "C:/Users/Magnu/blogg/soroganoth/soroganoth",
+	"sourceRoot": "C:/Users/Magnu/blogg/soroganoth/blog",
 	"sources": [
 		"C:/Users/Magnu/AppData/Local/Temp/hugo_cache/modules/filecache/modules/pkg/mod/github.com/chipzoller/hugo-clarity@v0.0.0-20221219095307-1d7940986aaf/assets/sass/main.sass",
 		"../../../AppData/Local/Temp/hugo_cache/modules/filecache/modules/pkg/mod/github.com/chipzoller/hugo-clarity@v0.0.0-20221219095307-1d7940986aaf/assets/sass/_variables.sass",
