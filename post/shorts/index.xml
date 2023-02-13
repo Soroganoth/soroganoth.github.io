@@ -4,7 +4,6 @@
     <title>shorts on Soroganoth</title>
     <link>https://soroganoth.com/post/shorts/</link>
     <description>Recent content in shorts on Soroganoth</description>
-<<<<<<< HEAD
     <image>
       <title>Soroganoth</title>
       <url>https://soroganoth.com/owo.png</url>
@@ -24,8 +23,5 @@ Microsoft Bicep Watchlist Reference: Bicep Reference
 Quick Comments about the template A Watchlist cannot be empty, so you need to some example value.</description>
     </item>
     
-=======
-    <generator>Hugo -- gohugo.io</generator><atom:link href="https://soroganoth.com/post/shorts/index.xml" rel="self" type="application/rss+xml" />
->>>>>>> 5cde6bc139b5398533ccf27806c418ccc358fac5
   </channel>
 </rss>
