@@ -29,5 +29,32 @@
       <description></description>
     </item>
     
+    <item>
+      <title>Azure AD Security</title>
+      <link>https://soroganoth.com/tags/azure-ad-security/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://soroganoth.com/tags/azure-ad-security/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Azure Security</title>
+      <link>https://soroganoth.com/tags/azure-security/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://soroganoth.com/tags/azure-security/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Service Principal</title>
+      <link>https://soroganoth.com/tags/service-principal/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://soroganoth.com/tags/service-principal/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>
