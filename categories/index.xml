@@ -1,10 +1,33 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Categories on Soroganoth</title>
     <link>https://soroganoth.com/categories/</link>
     <description>Recent content in Categories on Soroganoth</description>
+    <image>
+      <title>Soroganoth</title>
+      <url>https://soroganoth.com/owo.png</url>
+      <link>https://soroganoth.com/owo.png</link>
+    </image>
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Sat, 11 Feb 2023 20:24:31 +0100</lastBuildDate><atom:link href="https://soroganoth.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Azure AD</title>
+      <link>https://soroganoth.com/categories/azure-ad/</link>
+      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/categories/azure-ad/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Research</title>
+      <link>https://soroganoth.com/categories/research/</link>
+      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/categories/research/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>

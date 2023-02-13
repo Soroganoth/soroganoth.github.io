@@ -1,238 +1,308 @@
-
 <!DOCTYPE html>
-<html
-  lang="en"
-  data-figures="true"
-  
-    class="page"
-  
-  
-  >
-  <head>
-<title>Dive into Azure multi-tenant applications security | Soroganoth</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<script async src="https://www.googletagmanager.com/gtag/js?id=XXXXXXXXXX"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Dive into Azure multi-tenant applications security | Soroganoth</title>
+<meta name="keywords" content="Azure Security, Azure AD Security, Service Principal">
+<meta name="description" content="Deep dive into Azure AD application security.">
+<meta name="author" content="">
+<link rel="canonical" href="https://soroganoth.com/post/research/multi_tenant_applications_security/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css" integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="https://soroganoth.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://soroganoth.com/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://soroganoth.com/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://soroganoth.com/apple-touch-icon.png">
+<link rel="mask-icon" href="https://soroganoth.com/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:title" content="Dive into Azure multi-tenant applications security" />
+<meta property="og:description" content="Deep dive into Azure AD application security." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://soroganoth.com/post/research/multi_tenant_applications_security/" /><meta property="og:image" content="https://soroganoth.com/owo.png"/><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-02-11T20:24:31+01:00" />
+<meta property="article:modified_time" content="2023-02-11T20:24:31+01:00" /><meta property="og:site_name" content="Soroganoth" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://soroganoth.com/owo.png"/>
+
+<meta name="twitter:title" content="Dive into Azure multi-tenant applications security"/>
+<meta name="twitter:description" content="Deep dive into Azure AD application security."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "All posts",
+      "item": "https://soroganoth.com/post/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Long Posts",
+      "item": "https://soroganoth.com/post/research/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Dive into Azure multi-tenant applications security",
+      "item": "https://soroganoth.com/post/research/multi_tenant_applications_security/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Dive into Azure multi-tenant applications security",
+  "name": "Dive into Azure multi-tenant applications security",
+  "description": "Deep dive into Azure AD application security.",
+  "keywords": [
+    "Azure Security", "Azure AD Security", "Service Principal"
+  ],
+  "articleBody": "A look at the security of cross tenant applications in Azure AD The goal of this article is to dig deeper into some poorly document security aspects of Azure Active Directory Applications, particularly regarding multi tenant applications.\nThis is not a comprehensive guide about application and service principal security, but an overview of some interesting security properties which I find non-obvious and interesting.\nIf you are not familiar with the basic concepts of Applications and Service principals in Azure AD, I suggest starting with the documentation. https://learn.microsoft.com/en-us/azure/active-directory/develop/application-model\nThe very TLDR of this is that App Registrations are simply the definition of an app. When an app is created a service principal is also created with it. The Service Principal is the \"secureable object\" that actually holds permissions. Microsoft documentation will sometimes treat these as the same thing, which causes some confusion that is very pertinent for this post.\nSingle Tenant Perspective Getting basic info After creating a multi-tenant app we get some basic info about our sample application.\n1Get-AzADApplication -DisplayName \"Crosstenant-app\" 2DisplayName Id AppId 3----------- -- ----- 4Crosstenant-App 7bb7fbe2-c75f-4372-a2e6-e3f2bfea38d1 fd518bbc-8b0d-48a0-afc3-d59ebdc5e9eb 5 6Get-AzADServicePrincipal -DisplayName \"Crosstenant-app\" | select Displayname, Appid, ID 7DisplayName AppId Id 8----------- ----- -- 9Crosstenant-App fd518bbc-8b0d-48a0-afc3-d59ebdc5e9eb 97510906-bf60-40ba-8111-9c136c4c7363 Note that while the AppId is the same, the IDs are not. This is because the application and its associated service principal are separate objects in Azure AD. The AppId functions as the username of the service principal. The fact that these two are different comes with some interesting distinctions which are not obvious, semi-hidden credentials are among them.\nNormally when you create credentials for an app, you go to app registrations in the Azure portal and register new creds under the Certificates \u0026 Secrets tab.\n1Get-AzADAppCredential -ObjectId 7bb7fbe2-c75f-4372-a2e6-e3f2bfea38d1 2 3CustomKeyIdentifier DisplayName EndDateTime Hint KeyId SecretText StartDateTime 4------------------- ----------- ----------- ---- ----- ---------- ------------- 5 blogg-test 08/09/2023 16:52:51 EKx 8f77bed7-a8e0-400e-957c-be6de2ba3b21 02/10/2023 17:52:51 The objectid for this commandlet is the Id of the App registration.\nThis credential allows logging in as the service principal, including for cross tenant access. Note that this credential is used by the service principal, but is registered to the app registration itself. This is a relevant distincion because you can also register credentials for the service principal itself, not for application registration.\nThe potential dangers this presents for privilege escalation has been noted before.\nhttps://dirkjanm.io/azure-ad-privilege-escalation-application-admin/\nIt is not clear to me why Microsoft decided it should be possible to add credentials to these “hidden” service principals, or directly to service principals in general. I’m very curious about what usecase in which this makes sense. I have seen some first party Azure/Microsoft services do this for their own service principal, so from a detection standpoint there are some false positives.\nPrivilege escalation via Applications and service principals is a big topic that I won’t dive into in this post. However it is worth remembering that App Registrations and Service Principals are different objects, both of which can be assigned Owner roles.\nThis means that the “Owners” tab of an App Registration is not the same as the “Owners” tab of the Service Principal in Enterprise Applications. Owners are allowed to create credentials without having any of the Application Admin roles.\nOwners of the Service Principal can only create credentials of the Service Principal itself, not for the App registration, and vice versa.\nFor a single tenant perspective this is irrelevant as these credentials have the same permissions, but as we will see later, this does have some consequence in a multitenant setting.\nSemi-hidden credentials An important takeaway is that for any application that exists in App registrations in your Azure portal, there can exist credentials both for the App registration itself, and for the underlying service principal.\nIf the App registration is not from your tenant, but you are using a third-party app, then credentials can exist for any Service principal in the Enterprise applications tab in the portal(after dirk-jan's blog post some limitations have been applied to Micrsoft 1st party service principals).\nWhile the Application registration only lives in a single home tenant, the service principal is the “securable object” aka the thing that actually holds permissions. This means that for a globally unique Application, a different service principal exists in each tenant.\nThis is explained here: https://learn.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#relationship-between-application-objects-and-service-principals\nChecking for both types of credentials for the same apps shows while there is a set of credentials for the app registration, none (yet) exists for the service principal.\n1PS /home/soroganoth\u003e Get-AzADAppCredential -ObjectId 7bb7fbe2-c75f-4372-a2e6-e3f2bfea38d1 2 3CustomKeyIdentifier DisplayName EndDateTime Hint KeyId SecretText StartDateTime 4------------------- ----------- ----------- ---- ----- ---------- ------------- 5 blogg-test 08/09/2023 16:52:51 EKx 8f77bed7-a8e0-400e-957c-be6de2ba3b21 02/10/2023 17:52:51 6 7PS /home/soroganoth\u003e Get-AzADServicePrincipalCredential -ObjectId 97510906-bf60-40ba-8111-9c136c4c7363 8PS /home/soroganoth\u003e The object id of Get-AzADServicePrincipalCredential is the id of the service principal\nThe Commandlet Get-AzADAppCredential checks for creds registered in the app registration, while the commandlet Get-AzADServicePrincipalCredential checks for creds on the service principal object itself.\nCreating creds for the service principal.\n1PS /home/soroganoth\u003e New-azadspcredential -ObjectId 97510906-bf60-40ba-8111-9c136c4c7363 | fl 2 3CustomKeyIdentifier : 4DisplayName : 5EndDateTime : 02/11/2025 13:28:47 6Hint : guv 7KeyId : daffb636-6774-48ff-bfc6-e276ae81c766 8SecretText : nosecretforu 9StartDateTime : 02/11/2023 13:28:47 10AdditionalProperties : {[@odata.context, https://graph.microsoft.com/v1.0/$metadata#microsoft.graph.passwordCredential]} We have now created credentials for the service principal itself, and not the application registration.\n1PS /home/soroganoth\u003e Get-AzADAppCredential -ObjectId 7bb7fbe2-c75f-4372-a2e6-e3f2bfea38d1 2 3CustomKeyIdentifier DisplayName EndDateTime Hint KeyId SecretText StartDateTime 4------------------- ----------- ----------- ---- ----- ---------- ------------- 5 blogg-test 08/09/2023 16:52:51 EKx 8f77bed7-a8e0-400e-957c-be6de2ba3b21 02/10/2023 17:52:51 6 7PS /home/soroganoth\u003e Get-AzADServicePrincipalCredential -ObjectId 97510906-bf60-40ba-8111-9c136c4c7363 8 9CustomKeyIdentifier DisplayName EndDateTime Hint KeyId SecretText StartDateTime 10------------------- ----------- ----------- ---- ----- ---------- ------------- 11 02/11/2025 13:28:47 guv daffb636-6774-48ff-bfc6-e276ae81c766 02/11/2023 13:28:47 For the application in the portal, nothing has changed\nChecking the manifest only shows one set of credentials\n1{ 2// Removed for brevity 3\t\"keyCredentials\": [], 4\t\"name\": \"Crosstenant-App\", 5\t\"passwordCredentials\": [ 6\t{ 7\t\"customKeyIdentifier\": null, 8\t\"endDate\": \"2023-08-09T16:52:51.287Z\", 9\t\"keyId\": \"8f77bed7-a8e0-400e-957c-be6de2ba3b21\", 10\t\"startDate\": \"2023-02-10T17:52:51.287Z\", 11\t\"value\": null, 12\t\"createdOn\": \"2023-02-10T17:52:55.6424548Z\", 13\t\"hint\": \"EKx\", 14\t\"displayName\": \"blogg-test\" 15\t} 16\t], 17 18// Removed for brevity In the Enterprise Applications part of the Azure I have not found anywhere to display the credentials now registered for the service principal.\nThis means that while not exactly well hidden, the average Azure admin is not likely to stumble upon them.\nThis affords threat actors a persistence method which is probably not well understood by admins, SecOps and IR teams.\nKQL for the different operations Adding Credentials to an Application Registration\n1AuditLogs 2| where OperationName == \"Update application – Certificates and secrets management \" Note that there is a trailing whitespace here, without it this query fails. This is likely a bug and may change in the future.\nAdding credentials to the Service Principal (if this happens a lot in your tenant, I have questions)\n1AuditLogs 2| where OperationName == \"Add service principal credentials\" Adding owner for Service Principal\n1AuditLogs 2| where OperationName == \"Add owner to service principal\" Adding owner for App registration\n1AuditLogs 2| where OperationName == \"Add owner to application\" Checking access tokens JWTs\nDecoded JWT from App registration creds\n1{ 2 \"typ\": \"JWT\", 3 \"nonce\": \"D6m6_7pckByYBBqZ92pzGS0EllfMKcYkNmcJIqwiJNA\", 4 \"alg\": \"RS256\", 5 \"x5t\": \"-KI3Q9nNR7bRofxmeZoXqbHZGew\", 6 \"kid\": \"-KI3Q9nNR7bRofxmeZoXqbHZGew\" 7}.{ 8 \"aud\": \"https://graph.microsoft.com\", 9 \"iss\": \"https://sts.windows.net/69853a0f-0ff9-42b8-9170-ad4634237146/\", 10 \"iat\": 1676115525, 11 \"nbf\": 1676115525, 12 \"exp\": 1676119425, 13 \"aio\": \"E2ZgYNB/uLsy2PWn61v9PR1nH/sEAQA=\", 14 \"app_displayname\": \"Crosstenant-App\", 15 \"appid\": \"fd518bbc-8b0d-48a0-afc3-d59ebdc5e9eb\", 16 \"appidacr\": \"1\", 17 \"idp\": \"https://sts.windows.net/69853a0f-0ff9-42b8-9170-ad4634237146/\", 18 \"idtyp\": \"app\", 19 \"oid\": \"97510906-bf60-40ba-8111-9c136c4c7363\", 20 \"rh\": \"0.AU4ADzqFafkPuEKRcK1GNCNxRgMAAAAAAAAAwAAAAAAAAACDAAA.\", 21 \"roles\": [ 22 \"User.Read.All\" 23 ], 24 \"sub\": \"97510906-bf60-40ba-8111-9c136c4c7363\", 25 \"tenant_region_scope\": \"EU\", 26 \"tid\": \"69853a0f-0ff9-42b8-9170-ad4634237146\", 27 \"uti\": \"bpsBhnb0IEC0oYl0SLs0AA\", 28 \"ver\": \"1.0\", 29 \"wids\": [ 30 \"0997a1d0-0d1d-4acb-b408-d5ca73121e90\" 31 ], 32 \"xms_tcdt\": 1673029163, 33 \"xms_tdbr\": \"EU\" 34}.[Signature] Decoded JWT from Service Principal Creds\n1{ 2 \"typ\": \"JWT\", 3 \"nonce\": \"45spjjliy4a_3TLdkhnMTmhyU0mJ1aedRZH9dIDIDp4\", 4 \"alg\": \"RS256\", 5 \"x5t\": \"-KI3Q9nNR7bRofxmeZoXqbHZGew\", 6 \"kid\": \"-KI3Q9nNR7bRofxmeZoXqbHZGew\" 7}.{ 8 \"aud\": \"https://graph.microsoft.com\", 9 \"iss\": \"https://sts.windows.net/69853a0f-0ff9-42b8-9170-ad4634237146/\", 10 \"iat\": 1676122368, 11 \"nbf\": 1676122368, 12 \"exp\": 1676126268, 13 \"aio\": \"E2ZgYNBMnOfELl4ipNkUc/vW8f/PAQ==\", 14 \"app_displayname\": \"Crosstenant-App\", 15 \"appid\": \"fd518bbc-8b0d-48a0-afc3-d59ebdc5e9eb\", 16 \"appidacr\": \"1\", 17 \"idp\": \"https://sts.windows.net/69853a0f-0ff9-42b8-9170-ad4634237146/\", 18 \"idtyp\": \"app\", 19 \"oid\": \"97510906-bf60-40ba-8111-9c136c4c7363\", 20 \"rh\": \"0.AU4ADzqFafkPuEKRcK1GNCNxRgMAAAAAAAAAwAAAAAAAAACDAAA.\", 21 \"roles\": [ 22 \"User.Read.All\" 23 ], 24 \"sub\": \"97510906-bf60-40ba-8111-9c136c4c7363\", 25 \"tenant_region_scope\": \"EU\", 26 \"tid\": \"69853a0f-0ff9-42b8-9170-ad4634237146\", 27 \"uti\": \"hC0SUfHmk0qOqKDv-7ErAA\", 28 \"ver\": \"1.0\", 29 \"wids\": [ 30 \"0997a1d0-0d1d-4acb-b408-d5ca73121e90\" 31 ], 32 \"xms_tcdt\": 1673029163, 33 \"xms_tdbr\": \"EU\" 34}.[Signature] Diffing the access tokens shows no real difference beyond values you would expect to change. They seem to be functionally the same credentials, with the only real difference being that one of them is included in the manifest of the application.\nSingle tenant Logs As you would expect both sign ins show up in the logs with the same service principal ID, which makes sense as both credentials are using the same username.\nThe Credential key ID is different between the two sign-ins, as you would expect. Beyond that there does not seem to be any information to differentiate between the two types of credentials.\nMulti-tenant differences Having looked at the differences between Service Principals and App Registrations from a single tenant perspective, from a multi-tenant perspective start becoming real weird.\nIn this situation the \"Crosstenant-App\" we have been working with so far is registered in the home tenant, and is now being approved for access by a customer tenant.\nBasics of how an app knows which tenant its accessing Firstly, a cross-tenant application defines the tenant it is accessing by the URL it fetches an access token from\n1https://login.microsoftonline.com//oauth2/v2.0/token So different tenants require different access tokens. The client_id, or username is however the same across all tenants.\nIf you have created a cross-tenant app, an admin from a different tenant can approve this app into their tenant and grant access via the admin consent URL\n1https://login.microsoftonline.com/organizations/v2.0/adminconsent?client_id=\u0026scope=https://graph.microsoft.com/.default (there are a few different ways of creating a consent URL https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent?pivots=portal)\nThis creates a service principal in that tenant. An App Registration is not created as this exists only in the home tenant.\nRunning as the admin in the customer tenant we can now see a service principal with the same AppId (as this is globally unique in Azure), but a different Id.\n1PS /home/soroganoth\u003e Get-AzADServicePrincipal -displayName \"Crosstenant-app\" | select Displayname, Appid, ID 2 3DisplayName AppId Id 4----------- ----- -- 5Crosstenant-App fd518bbc-8b0d-48a0-afc3-d59ebdc5e9eb 190d3268-6f11-49e6-8c14-4da10c9cc0c6 Even though this is an app from a different tenant, we can still create credentials for this Service Principal in our customer tenant. This is pretty weird behaviour which should probably be a detection usecase for SecOps teams.\n1PS /home/soroganoth\u003e new-azadspcredential -ObjectId 190d3268-6f11-49e6-8c14-4da10c9cc0c6 | fl 2 3CustomKeyIdentifier : 4DisplayName : 5EndDateTime : 02/11/2025 17:29:08 6Hint : 3Wi 7KeyId : 67135e6e-e725-4950-9a00-63d6dcbf8b79 8SecretText : nosecretforu 9StartDateTime : 02/11/2023 17:29:08 10AdditionalProperties : {[@odata.context, https://graph.microsoft.com/v1.0/$metadata#microsoft.graph.passwordCredential]} This allows us to get an access token to acts as this service principal in our own tenant (as the customer in this setting), with all its associated permissions.\nTrying to use this client to gain access to the home tenant will not work (we are still using the same AppId as the username in all of these logins, regardless of which tenant we are in).\nFrom the perspective of the home tenant, things are different depending on whether you are using the credentials from the app registration or the service principal.\nOnly the credentials from the app registration is included the in the manifest which is approved by customer admins, and only this credential can be used to access the customer tenant. Trying to get an access token to a customer tenant with the credentials registered directly to the service principal fails with an error of “invalid secret”.\nFor an attacker this means that creating creds for the service principal is useful for a single tenant scenario, but does not allow for supply-chain attacks to customer tenants.\nLogging surprise I was quite surprise to note that these logins from the credentials created in the customer tenant, was also logged in the home tenant.\nCustomer Tenant logs\nHome tenant logs\nNote identical Request and correlation ID.\nSurprisingly the home tenant can see the Service Principal ID, despite it existing in a customer tenant.\nSame Service Principal name, but with different IDs from different tenants\nThere are some interesting differences. The home tenant logs do not contain the Credential key ID field, while the customer tenant contains both Resource service principal ID and Credential key ID.\nThe Resource service principal ID is the local service principal for the resource, in this case it is the customer tenants Microsoft Graph Service Principal Id.\nLooking at the same logs in log analytics I can see that a TenantId is included. This does not seem to be connected to any of the tenants and it does not have an OIDC config in Azure at\nhttps://login.microsoftonline.com//v2.0/.well-known/openid-configuration\nHaving done some testing across different tenants and apps, the value seems to differ, but none of them seem to resolve to an actual TenantId.\nFrom a Managed Service Provider perspective these logs are limiting. I have not done any major testing, but the lack of a Credential key ID seems to be abnormal for Service Principal logins, and could be used to detect someone in a customer tenant logging in as your application (which should be a very rare anomaly), it does not actually tell you what tenant this is happening in. If you have only one app per customer, this is pretty simple.\nIf you have a multitenant App, there are things you can do. As the sign in logs in your tenant shows the service Principal ID, you can correlate that with the sub claim in the access token.\nCreate a script to get access token for each customer tenant and grab the sub claim from all the access tokens and map out which customer environments they belong to. This is very much a hack due poor logging on Microsofts part.\nSimple KQL to detect lacking Credential ID\n1AADServicePrincipalSignInLogs 2| where ServicePrincipalCredentialKeyId == \"\" Customer Permissions Escalation The owners and app admins of an App Registration can add permissions to an app without having the permission to consent for service principal to actually have these permissions.\nPermissions added but not consented\nHowever these permissions have now been included in the manifest, and if we send the admin consent URL to a customer admin again, they will be asked to give these permissions to the app.\nThis means that while the Owner of an application registration in Azure is not able to constent to the permissions in their own Azure tenant, they are indirectly able to do so in customer environments. This is non-obvious behaviour which service providers should take note of.\n",
+  "wordCount" : "2401",
+  "inLanguage": "en",
+  "datePublished": "2023-02-11T20:24:31+01:00",
+  "dateModified": "2023-02-11T20:24:31+01:00",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://soroganoth.com/post/research/multi_tenant_applications_security/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Soroganoth",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://soroganoth.com/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'XXXXXXXXXX');
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
 </script>
 
-
-
-<meta property="og:locale" content="en" />
-
-<meta property="og:type" content="article">
-<meta name="description" content="Deep dive into Azure AD application security." />
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:creator" content="@Soroganoth">
-<meta name="twitter:title" content="Dive into Azure multi-tenant applications security" />
-<meta name="twitter:image" content="https://soroganoth.com/images/thumbnail.png"/>
-<meta property="og:url" content="https://soroganoth.com/post/research/multi_tenant_applications_security/" />
-<meta property="og:title" content="Dive into Azure multi-tenant applications security" />
-<meta property="og:description" content="Deep dive into Azure AD application security." />
-<meta property="og:image" content="https://soroganoth.com/images/thumbnail.png" />
-
-<link rel="apple-touch-icon" sizes="180x180" href="https://soroganoth.com/icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://soroganoth.com/icons/favicon-32x32.png">
-<link rel="manifest" href="https://soroganoth.com/icons/site.webmanifest">
-
-<link rel="canonical" href="https://soroganoth.com/post/research/multi_tenant_applications_security/">
-
-
-
-<link rel="preload" href="https://soroganoth.com/css/styles.42e2c5f6d8cf9c52872666f8d8b2678ad0c426978b9d78aff3c33b7a1e7f6f97f54bcdaf0518a25fb0fe26367d04f8b07c683b3b38b331cb098daadee06b1f3e.css" integrity = "sha512-QuLF9tjPnFKHJmb42LJnitDEJpeLnXiv88M7eh5/b5f1S82vBRiiX7D&#43;JjZ9BPiwfGg7OzizMcsJjare4GsfPg==" as="style" crossorigin="anonymous">
-
-
-
-<link rel="preload" href="https://soroganoth.com/en/js/bundle.0916babe202e8bc7785a506155b44e8bc87bc530aa704bca30d5c08b4f968f393d3defccb86efeb1314a50d5f9085ce9cb7f2ac71d5afeee0d6da80f01193953.js" as="script" integrity=
-"sha512-CRa6viAui8d4WlBhVbROi8h7xTCqcEvKMNXAi0&#43;Wjzk9Pe/MuG7&#43;sTFKUNX5CFzpy38qxx1a/u4NbagPARk5Uw==" crossorigin="anonymous">
-
-
-<link rel="stylesheet" type="text/css" href="https://soroganoth.com/css/styles.42e2c5f6d8cf9c52872666f8d8b2678ad0c426978b9d78aff3c33b7a1e7f6f97f54bcdaf0518a25fb0fe26367d04f8b07c683b3b38b331cb098daadee06b1f3e.css" integrity="sha512-QuLF9tjPnFKHJmb42LJnitDEJpeLnXiv88M7eh5/b5f1S82vBRiiX7D&#43;JjZ9BPiwfGg7OzizMcsJjare4GsfPg==" crossorigin="anonymous">
-
-
-  </head>
-  <body
-    data-code="15"
-    data-lines="false"
-    id="documentTop"
-    data-lang="en"
-  >
-
-<header class="nav_header" >
-  <nav class="nav"><a href='https://soroganoth.com/' class="nav_brand nav_item" title="Soroganoth">
-  <img src="https://soroganoth.com/logos/icon.png" class="logo" alt="Soroganoth">
-  <div class="nav_close">
-    <div><svg class="icon">
-  <title>open-menu</title>
-  <use xlink:href="#open-menu"></use>
-</svg>
-<svg class="icon">
-  <title>closeme</title>
-  <use xlink:href="#closeme"></use>
-</svg>
-</div>
-  </div>
-</a>
-
-    <div class='nav_body nav_body_left'>
-      
-      
-      
-        
-
-  <div class="nav_parent">
-    <a href="https://soroganoth.com/" class="nav_item" title="All posts">All posts </a>
-  </div>
-  <div class="nav_parent">
-    <a href="https://soroganoth.com/post/research/" class="nav_item" title="Long posts">Long posts </a>
-  </div>
-  <div class="nav_parent">
-    <a href="https://soroganoth.com/post/shorts/" class="nav_item" title="Short posts">Short posts </a>
-  </div>
-  <div class="nav_parent">
-    <a href="https://soroganoth.com/about/abooutme" class="nav_item" title="About">About </a>
-  </div>
-  <div class="nav_parent">
-    <a href="https://soroganoth.com/" class="nav_item" title="Links">Links <img src='https://soroganoth.com/icons/caret-icon.svg' alt="icon" class="nav_icon"></a>
-    <div class="nav_sub">
-      <span class="nav_child"></span>
-        <a href="https://github.com/Soroganoth" class="nav_child nav_item" title="Github">Github</a>
-        <a href="https://twitter.com/soroganoth" class="nav_child nav_item" title="Twitter">Twitter</a>
-    </div>
-  </div>
-      
-<div class='follow'>
-  <a href="https://github.com/Soroganoth">
-    <svg class="icon">
-  <title>github</title>
-  <use xlink:href="#github"></use>
-</svg>
-
-  </a>
-  <a href="https://twitter.com/soroganoth">
-    <svg class="icon">
-  <title>twitter</title>
-  <use xlink:href="#twitter"></use>
-</svg>
-
-  </a>
-    
-  <a href="https://soroganoth.com/index.xml">
-    <svg class="icon">
-  <title>rss</title>
-  <use xlink:href="#rss"></use>
-</svg>
-
-  </a>
-<div class="color_mode">
-  <input type="checkbox" class="color_choice" id="mode">
-</div>
-
-</div>
-
-    </div>
-  </nav>
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://soroganoth.com/" accesskey="h" title="Soroganoth (Alt + H)">Soroganoth</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://soroganoth.com/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://soroganoth.com/post/research/" title="Deep dives">
+                    <span>Deep dives</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://soroganoth.com/post/shorts/" title="Short posts">
+                    <span>Short posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://soroganoth.com/about/abooutme" title="About me">
+                    <span>About me</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://github.com/Soroganoth" title="Github">
+                    <span>Github</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a href="https://twitter.com/soroganoth" title="Twitter">
+                    <span>Twitter</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a href="https://soroganoth.com/tags/" title="Post Tags">
+                    <span>Post Tags</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://soroganoth.com/search/" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </header>
+<main class="main">
 
-    <main>
-  
-<div class="grid-inverse wrap content">
-  <article class="post_content">
-    <h1 class="post_title">Dive into Azure multi-tenant applications security</h1>
-  <div class="post_meta">
-    <span><svg class="icon">
-  <title>calendar</title>
-  <use xlink:href="#calendar"></use>
-</svg>
-</span>
-    <span class="post_date">
-      Feb 11, 2023</span>
-    <span class="post_time"> · 12 min read</span><span>&nbsp;· <a href='https://soroganoth.com/tags/azure-security/' title="Azure Security" class="post_tag button button_translucent">Azure Security
-        </a><a href='https://soroganoth.com/tags/azure-ad-security/' title="Azure AD Security" class="post_tag button button_translucent">Azure AD Security
-        </a><a href='https://soroganoth.com/tags/service-principal/' title="Service Principal" class="post_tag button button_translucent">Service Principal
-        </a>
-    </span>
-  </div>
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://soroganoth.com/">Home</a>&nbsp;»&nbsp;<a href="https://soroganoth.com/post/">All posts</a>&nbsp;»&nbsp;<a href="https://soroganoth.com/post/research/">Long Posts</a></div>
+    <h1 class="post-title">
+      Dive into Azure multi-tenant applications security
+    </h1>
+    <div class="post-description">
+      Deep dive into Azure AD application security.
+    </div>
+    <div class="post-meta"><span title='2023-02-11 20:24:31 +0100 CET'>February 11, 2023</span>&nbsp;·&nbsp;12 min
 
-      <div class="post_toc">
-        <h2>Overview</h2>
-        <nav id="TableOfContents">
-  <ul>
-    <li><a href="#single-tenant-perspective">Single Tenant Perspective</a>
-      <ul>
-        <li><a href="#getting-basic-info">Getting basic info</a></li>
-        <li><a href="#semi-hidden-credentials">Semi-hidden credentials</a></li>
-        <li><a href="#kql-for-the-different-operations">KQL for the different operations</a></li>
-        <li><a href="#checking-access-tokens">Checking access tokens</a></li>
-        <li><a href="#single-tenant-logs">Single tenant Logs</a></li>
-      </ul>
-    </li>
-    <li><a href="#multi-tenant-differences">Multi-tenant differences</a>
-      <ul>
-        <li><a href="#basics-of-how-an-app-knows-which-tenant-its-accessing">Basics of how an app knows which tenant its accessing</a></li>
-        <li><a href="#logging-surprise">Logging surprise</a></li>
-        <li><a href="#customer-permissions-escalation">Customer Permissions Escalation</a></li>
-      </ul>
-    </li>
-  </ul>
-</nav>
-      </div>
-    
-    <div class="post_body"><h1 id="a-look-at-the-security-of-cross-tenant-applications-in-azure-ad">A look at the security of cross tenant applications in Azure AD</h1>
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#a-look-at-the-security-of-cross-tenant-applications-in-azure-ad" aria-label="A look at the security of cross tenant applications in Azure AD">A look at the security of cross tenant applications in Azure AD</a><ul>
+                        
+                <li>
+                    <a href="#single-tenant-perspective" aria-label="Single Tenant Perspective">Single Tenant Perspective</a><ul>
+                        
+                <li>
+                    <a href="#getting-basic-info" aria-label="Getting basic info">Getting basic info</a></li>
+                <li>
+                    <a href="#semi-hidden-credentials" aria-label="Semi-hidden credentials">Semi-hidden credentials</a></li>
+                <li>
+                    <a href="#kql-for-the-different-operations" aria-label="KQL for the different operations">KQL for the different operations</a></li>
+                <li>
+                    <a href="#checking-access-tokens" aria-label="Checking access tokens">Checking access tokens</a></li>
+                <li>
+                    <a href="#single-tenant-logs" aria-label="Single tenant Logs">Single tenant Logs</a></li></ul>
+                </li>
+                <li>
+                    <a href="#multi-tenant-differences" aria-label="Multi-tenant differences">Multi-tenant differences</a><ul>
+                        
+                <li>
+                    <a href="#basics-of-how-an-app-knows-which-tenant-its-accessing" aria-label="Basics of how an app knows which tenant its accessing">Basics of how an app knows which tenant its accessing</a></li>
+                <li>
+                    <a href="#logging-surprise" aria-label="Logging surprise">Logging surprise</a></li>
+                <li>
+                    <a href="#customer-permissions-escalation" aria-label="Customer Permissions Escalation">Customer Permissions Escalation</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="a-look-at-the-security-of-cross-tenant-applications-in-azure-ad">A look at the security of cross tenant applications in Azure AD<a hidden class="anchor" aria-hidden="true" href="#a-look-at-the-security-of-cross-tenant-applications-in-azure-ad">#</a></h1>
 <p><strong>The goal of this article is to dig deeper into some poorly document security aspects of Azure Active Directory Applications, particularly regarding multi tenant applications.</strong></p>
 <p>This is not a comprehensive guide about application and service principal security, but an overview of some interesting security properties which I find non-obvious and interesting.</p>
 <p>If you are not familiar with the basic concepts of Applications and Service principals in Azure AD, I suggest starting with the documentation. <a href="https://learn.microsoft.com/en-us/azure/active-directory/develop/application-model">https://learn.microsoft.com/en-us/azure/active-directory/develop/application-model</a></p>
 <p>The very TLDR of this is that App Registrations are simply the definition of an app. When an app is created a service principal is also created with it. The Service Principal is the &quot;secureable object&quot; that actually holds permissions. Microsoft documentation will sometimes treat these as the same thing, which causes some confusion that is very pertinent for this post.</p>
 <p> </p>
-<h2 id="single-tenant-perspective">Single Tenant Perspective</h2>
+<h2 id="single-tenant-perspective">Single Tenant Perspective<a hidden class="anchor" aria-hidden="true" href="#single-tenant-perspective">#</a></h2>
 <p> </p>
-<h3 id="getting-basic-info">Getting basic info</h3>
+<h3 id="getting-basic-info">Getting basic info<a hidden class="anchor" aria-hidden="true" href="#getting-basic-info">#</a></h3>
 <p>After creating a multi-tenant app we get some basic info about our sample application.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">Get-AzADApplication</span> <span class="n">-DisplayName</span> <span class="s2">&#34;Crosstenant-app&#34;</span>
 </span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">DisplayName</span>     <span class="n">Id</span>                                   <span class="n">AppId</span>
 </span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="p">-----------</span>     <span class="p">--</span>                                   <span class="p">-----</span>
-</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nb">Crosstenant-App</span> <span class="n">7bb7fbe2-c75f</span><span class="p">-</span><span class="n">4372-a2e6-e3f2bfea38d1</span> <span class="n">fd518bbc</span><span class="p">-</span><span class="n">8b0d</span><span class="p">-</span><span class="n">48a0-afc3-d59ebdc5e9eb</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nb">Crosstenant-App</span> <span class="n">7bb7fbe2-c75f</span><span class="p">-</span><span class="mf">4372</span><span class="n">-a2e6-e3f2bfea38d1</span> <span class="n">fd518bbc</span><span class="p">-</span><span class="n">8b0d</span><span class="p">-</span><span class="n">48a0-afc3-d59ebdc5e9eb</span>
 </span></span><span class="line"><span class="ln">5</span><span class="cl">
 </span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="nb">Get-AzADServicePrincipal</span> <span class="n">-DisplayName</span> <span class="s2">&#34;Crosstenant-app&#34;</span> <span class="p">|</span> <span class="nb">select </span><span class="n">Displayname</span><span class="p">,</span> <span class="n">Appid</span><span class="p">,</span> <span class="n">ID</span>
 </span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">DisplayName</span>     <span class="n">AppId</span>                                <span class="n">Id</span>
 </span></span><span class="line"><span class="ln">8</span><span class="cl"><span class="p">-----------</span>     <span class="p">-----</span>                                <span class="p">--</span>
-</span></span><span class="line"><span class="ln">9</span><span class="cl"><span class="nb">Crosstenant-App</span> <span class="n">fd518bbc</span><span class="p">-</span><span class="n">8b0d</span><span class="p">-</span><span class="n">48a0-afc3-d59ebdc5e9eb</span> <span class="n">97510906-bf60</span><span class="p">-</span><span class="n">40ba</span><span class="p">-</span><span class="n">8111</span><span class="p">-</span><span class="n">9c136c4c7363</span>
-</span></span></code></pre></div><p>Note that while the AppId is the same, the IDs are not. This is because the application and its associated service principal are separate objects in Azure AD. 
+</span></span><span class="line"><span class="ln">9</span><span class="cl"><span class="nb">Crosstenant-App</span> <span class="n">fd518bbc</span><span class="p">-</span><span class="n">8b0d</span><span class="p">-</span><span class="n">48a0-afc3-d59ebdc5e9eb</span> <span class="mf">97510906</span><span class="n">-bf60</span><span class="p">-</span><span class="n">40ba</span><span class="p">-</span><span class="mf">8111</span><span class="p">-</span><span class="n">9c136c4c7363</span>
+</span></span></code></pre></div><p>Note that while the AppId is the same, the IDs are not. This is because the application and its associated service principal are separate objects in Azure AD.
 The AppId functions as the username of the service principal.
 The fact that these two are different comes with some interesting distinctions which are not obvious, semi-hidden credentials are among them.</p>
 <p>Normally when you create credentials for an app, you go to app registrations in the Azure portal and register new creds under the Certificates &amp; Secrets tab.</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Credentials showing up as you would expect"
-      
-        class="image_figure image_internal image_processed"
-        width="1290"
-        height="534"
-        src="/post/research/multi_tenant_applications_security/2.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="2.png" alt="Credentials showing up as you would expect"  />
 </p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">Get-AzADAppCredential -ObjectId 7bb7fbe2-c75f-4372-a2e6-e3f2bfea38d1
 </span></span><span class="line"><span class="ln">2</span><span class="cl">
@@ -251,7 +321,7 @@ Note that this credential is used by the service principal, but is registered to
 <p>For a single tenant perspective this is irrelevant as these credentials have the same permissions, but as we will see later, this does have some consequence in a multitenant setting.</p>
 <p> </p>
 <p> </p>
-<h3 id="semi-hidden-credentials">Semi-hidden credentials</h3>
+<h3 id="semi-hidden-credentials">Semi-hidden credentials<a hidden class="anchor" aria-hidden="true" href="#semi-hidden-credentials">#</a></h3>
 <p>An important takeaway is that for any application that exists in <strong>App registrations</strong> in your Azure portal, there can exist credentials both for the App registration itself, and for the underlying service principal.</p>
 <p>If the App registration is not from your tenant, but you are using a third-party app, then credentials can exist for any Service principal in the Enterprise applications tab in the portal(after dirk-jan's blog post some limitations have been applied to Micrsoft 1st party service principals).</p>
 <p>While the Application registration only lives in a single home tenant, the service principal is the “securable object” aka the thing that actually holds permissions. This means that for a globally unique Application, a different service principal exists in each tenant.</p>
@@ -291,33 +361,7 @@ Note that this credential is used by the service principal, but is registered to
 </span></span><span class="line"><span class="ln">10</span><span class="cl">------------------- ----------- -----------         ---- -----                                ---------- -------------
 </span></span><span class="line"><span class="ln">11</span><span class="cl">                                02/11/2025 13:28:47 guv  daffb636-6774-48ff-bfc6-e276ae81c766            02/11/2023 13:28:47
 </span></span></code></pre></div><p>For the application in the portal, nothing has changed</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Still only old creds"
-      
-        class="image_figure image_internal image_processed"
-        width="1303"
-        height="596"
-        src="/post/research/multi_tenant_applications_security/7.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./7.png" alt="Still only old creds"  />
 </p>
 <p>Checking the manifest only shows one set of credentials</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="p">{</span>
@@ -343,7 +387,7 @@ Note that this credential is used by the service principal, but is registered to
 <p>This affords threat actors a persistence method which is probably not well understood by admins, SecOps and IR teams.</p>
 <p> </p>
 <p> </p>
-<h3 id="kql-for-the-different-operations">KQL for the different operations</h3>
+<h3 id="kql-for-the-different-operations">KQL for the different operations<a hidden class="anchor" aria-hidden="true" href="#kql-for-the-different-operations">#</a></h3>
 <p>Adding Credentials to an Application Registration</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">AuditLogs
 </span></span><span class="line"><span class="ln">2</span><span class="cl">| where OperationName == &#34;Update application – Certificates and secrets management &#34;
@@ -363,7 +407,7 @@ This is likely a bug and may change in the future.</p>
 </span></span><span class="line"><span class="ln">2</span><span class="cl">| where OperationName == &#34;Add owner to application&#34;
 </span></span></code></pre></div><p> </p>
 <p> </p>
-<h3 id="checking-access-tokens">Checking access tokens</h3>
+<h3 id="checking-access-tokens">Checking access tokens<a hidden class="anchor" aria-hidden="true" href="#checking-access-tokens">#</a></h3>
 <p>JWTs</p>
 <p>Decoded JWT from App registration creds</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="p">{</span>
@@ -437,43 +481,17 @@ This is likely a bug and may change in the future.</p>
 </span></span><span class="line"><span class="ln">34</span><span class="cl"><span class="p">}</span><span class="err">.</span><span class="p">[</span><span class="err">Signature</span><span class="p">]</span>
 </span></span></code></pre></div><p>Diffing the access tokens shows no real difference beyond values you would expect to change. They seem to be functionally the same credentials, with the only real difference being that one of them is included in the manifest of the application.</p>
 <p> </p>
-<h3 id="single-tenant-logs">Single tenant Logs</h3>
+<h3 id="single-tenant-logs">Single tenant Logs<a hidden class="anchor" aria-hidden="true" href="#single-tenant-logs">#</a></h3>
 <p>As you would expect both sign ins show up in the logs with the same service principal ID, which makes sense as both credentials are using the same username.</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Login from both SP creds and App Creds"
-      
-        class="image_figure image_internal image_processed"
-        width="1041"
-        height="449"
-        src="/post/research/multi_tenant_applications_security/8.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./8.png" alt="Login from both SP creds and App Creds"  />
 </p>
 <p>The Credential key ID is different between the two sign-ins, as you would expect. Beyond that there does not seem to be any information to differentiate between the two types of credentials.</p>
 <p> </p>
-<h2 id="multi-tenant-differences">Multi-tenant differences</h2>
+<h2 id="multi-tenant-differences">Multi-tenant differences<a hidden class="anchor" aria-hidden="true" href="#multi-tenant-differences">#</a></h2>
 <p>Having looked at the differences between Service Principals and App Registrations from a single tenant perspective, from a multi-tenant perspective start becoming real weird.</p>
 <p>In this situation the &quot;Crosstenant-App&quot; we have been working with so far is registered in the home tenant, and is now being approved for access by a customer tenant.</p>
 <p> </p>
-<h3 id="basics-of-how-an-app-knows-which-tenant-its-accessing">Basics of how an app knows which tenant its accessing</h3>
+<h3 id="basics-of-how-an-app-knows-which-tenant-its-accessing">Basics of how an app knows which tenant its accessing<a hidden class="anchor" aria-hidden="true" href="#basics-of-how-an-app-knows-which-tenant-its-accessing">#</a></h3>
 <p>Firstly, a cross-tenant application defines the tenant it is accessing by the URL it fetches an access token from</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">https://login.microsoftonline.com/&lt;tenantidhere&gt;/oauth2/v2.0/token
 </span></span></code></pre></div><p>So different tenants require different access tokens. The client_id, or username is however the same across all tenants.</p>
@@ -505,95 +523,17 @@ This is likely a bug and may change in the future.</p>
 Trying to get an access token to a customer tenant with the credentials registered directly to the service principal fails with an error of “invalid secret”.</p>
 <p>For an attacker this means that creating creds for the service principal is useful for a single tenant scenario, but does not allow for supply-chain attacks to customer tenants.</p>
 <p> </p>
-<h3 id="logging-surprise">Logging surprise</h3>
+<h3 id="logging-surprise">Logging surprise<a hidden class="anchor" aria-hidden="true" href="#logging-surprise">#</a></h3>
 <p>I was quite surprise to note that these logins from the credentials created in the customer tenant, was also logged in the home tenant.</p>
 <p>Customer Tenant logs</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Customer Logs"
-      
-        class="image_figure image_internal image_processed"
-        width="839"
-        height="886"
-        src="/post/research/multi_tenant_applications_security/11.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./11.png" alt="Customer Logs"  />
 </p>
 <p>Home tenant logs</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Home tenant logs"
-      
-        class="image_figure image_internal image_processed"
-        width="827"
-        height="879"
-        src="/post/research/multi_tenant_applications_security/12.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./12.png" alt="Home tenant logs"  />
 </p>
 <p>Note identical Request and correlation ID.</p>
 <p>Surprisingly the home tenant can see the Service Principal ID, despite it existing in a customer tenant.</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="190d3 Service Principal does not exist in this tenant"
-      
-        class="image_figure image_internal image_processed"
-        width="897"
-        height="274"
-        src="/post/research/multi_tenant_applications_security/13.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./13.png" alt="190d3 Service Principal does not exist in this tenant"  />
 </p>
 <p>Same Service Principal name, but with different IDs from different tenants</p>
 <p>There are some interesting differences. The home tenant logs do not contain the Credential key ID field, while the customer tenant contains both Resource service principal ID and Credential key ID.</p>
@@ -608,244 +548,197 @@ Trying to get an access token to a customer tenant with the credentials register
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">AADServicePrincipalSignInLogs
 </span></span><span class="line"><span class="ln">2</span><span class="cl">| where ServicePrincipalCredentialKeyId == &#34;&#34;
 </span></span></code></pre></div><p> </p>
-<h3 id="customer-permissions-escalation">Customer Permissions Escalation</h3>
+<h3 id="customer-permissions-escalation">Customer Permissions Escalation<a hidden class="anchor" aria-hidden="true" href="#customer-permissions-escalation">#</a></h3>
 <p>The owners and app admins of an App Registration can add permissions to an app without having the permission to consent for service principal to actually have these permissions.</p>
 <p>Permissions added but not consented</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Permissions added but not consented to"
-      
-        class="image_figure image_internal image_processed"
-        width="1260"
-        height="745"
-        src="/post/research/multi_tenant_applications_security/14.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./14.png" alt="Permissions added but not consented to"  />
 </p>
 <p>However these permissions have now been included in the manifest, and if we send the admin consent URL to a customer admin again, they will be asked to give these permissions to the app.</p>
-<p>
-  <figure>
-  <picture>
-
-    
-      
-        
-        
-        
-        
-        
-        
-    <img
-      loading="lazy"
-      decoding="async"
-      alt="Customer admin being asked for permissions not granted to the same app in home tenant"
-      
-        class="image_figure image_internal image_processed"
-        width="440"
-        height="763"
-        src="/post/research/multi_tenant_applications_security/15.png"
-      
-      
-    />
-
-    </picture>
-</figure>
+<p><img loading="lazy" src="./15.png" alt="Customer admin being asked for permissions not granted to the same app in home tenant"  />
 </p>
 <p>This means that while the Owner of an application registration in Azure is not able to constent to the permissions in their own Azure tenant, they are indirectly able to do so in customer environments. This is non-obvious behaviour which service providers should take note of.</p>
 
-    </div>
-<div class="post_comments">
-  
-  
-  
-</div>
 
-
-
-
-  </article>
-<aside class="sidebar">
-  <section class="sidebar_inner">
-    <br>
-    
-  
-  <div class="search">
-    <input type="search" class="search_field form_field" placeholder='Search...' id="find" autocomplete="off" data-scope='post'>
-    <label for="find" class="search_label"><svg class="icon">
-  <title>search</title>
-  <use xlink:href="#search"></use>
-</svg>
-
-    </label>
-    
-    <div class="search_results results"></div>
   </div>
 
-        <div class="author_header">
-          <img src="https://soroganoth.com/images/avatar.png" alt="Soroganoth photo">
-          <h2>Soroganoth</h2>
-        </div>
-      <div class="author_bio">
-        I mostly write about Cloud Security stuff. Mainly Azure
-      </div>
-      <a href='https://soroganoth.com/about/' class="button mt-1" role="button" title='Read More'>Read More</a>
-
-    
-    
-    <h2 class="mt-4">Featured Posts</h2>
-    <ul>
-      <li>
-        <a href="https://soroganoth.com/post/research/multi_tenant_applications_security/" class="nav-link" title="Dive into Azure multi-tenant applications security">Dive into Azure multi-tenant applications security</a>
-      </li>
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://soroganoth.com/tags/azure-security/">Azure Security</a></li>
+      <li><a href="https://soroganoth.com/tags/azure-ad-security/">Azure AD Security</a></li>
+      <li><a href="https://soroganoth.com/tags/service-principal/">Service Principal</a></li>
     </ul>
-    <h2 class="mt-4">Recent Posts</h2>
-    <ul class="flex-column">
-    </ul>
-    <div>
-      <h2 class="mt-4 taxonomy" id="categories-section">Categories</h2>
-      <nav class="tags_nav">
-        <a href='https://soroganoth.com/categories/azure-ad/' class="post_tag button button_translucent" title="azure-ad">
-          AZURE-AD
-          <span class="button_tally">1</span>
-        </a>
-        
-        <a href='https://soroganoth.com/categories/research/' class="post_tag button button_translucent" title="research">
-          RESEARCH
-          <span class="button_tally">1</span>
-        </a>
-        
-        
-      </nav>
-    </div>
-    <div>
-      <h2 class="mt-4 taxonomy" id="tags-section">Tags</h2>
-      <nav class="tags_nav">
-        <a href='https://soroganoth.com/tags/azure-ad-security/' class="post_tag button button_translucent" title="azure-ad-security">
-          AZURE-AD-SECURITY
-          <span class="button_tally">1</span>
-        </a>
-        
-        <a href='https://soroganoth.com/tags/azure-security/' class="post_tag button button_translucent" title="azure-security">
-          AZURE-SECURITY
-          <span class="button_tally">1</span>
-        </a>
-        
-        <a href='https://soroganoth.com/tags/service-principal/' class="post_tag button button_translucent" title="service-principal">
-          SERVICE-PRINCIPAL
-          <span class="button_tally">1</span>
-        </a>
-        
-        
-      </nav>
-    </div>
-  </section>
-</aside>
+<nav class="paginav">
+  <a class="next" href="https://soroganoth.com/post/shorts/sentinel_bicep_watchlist/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Deploy Azure Sentinel Watchlists with Bicep</span>
+  </a>
+</nav>
 
-  
+
+<div class="share-buttons">
+    <a target="_blank" rel="noopener noreferrer" aria-label="share Dive into Azure multi-tenant applications security on twitter"
+        href="https://twitter.com/intent/tweet/?text=Dive%20into%20Azure%20multi-tenant%20applications%20security&amp;url=https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f&amp;hashtags=AzureSecurity%2cAzureADSecurity%2cServicePrincipal">
+        <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+            <path
+                d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-253.927,424.544c135.939,0 210.268,-112.643 210.268,-210.268c0,-3.218 0,-6.437 -0.153,-9.502c14.406,-10.421 26.973,-23.448 36.935,-38.314c-13.18,5.824 -27.433,9.809 -42.452,11.648c15.326,-9.196 26.973,-23.602 32.49,-40.92c-14.252,8.429 -30.038,14.56 -46.896,17.931c-13.487,-14.406 -32.644,-23.295 -53.946,-23.295c-40.767,0 -73.87,33.104 -73.87,73.87c0,5.824 0.613,11.494 1.992,16.858c-61.456,-3.065 -115.862,-32.49 -152.337,-77.241c-6.284,10.881 -9.962,23.601 -9.962,37.088c0,25.594 13.027,48.276 32.95,61.456c-12.107,-0.307 -23.448,-3.678 -33.41,-9.196l0,0.92c0,35.862 25.441,65.594 59.311,72.49c-6.13,1.686 -12.72,2.606 -19.464,2.606c-4.751,0 -9.348,-0.46 -13.946,-1.38c9.349,29.426 36.628,50.728 68.965,51.341c-25.287,19.771 -57.164,31.571 -91.8,31.571c-5.977,0 -11.801,-0.306 -17.625,-1.073c32.337,21.15 71.264,33.41 112.95,33.41Z" />
+        </svg>
+    </a>
+    <a target="_blank" rel="noopener noreferrer" aria-label="share Dive into Azure multi-tenant applications security on linkedin"
+        href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f&amp;title=Dive%20into%20Azure%20multi-tenant%20applications%20security&amp;summary=Dive%20into%20Azure%20multi-tenant%20applications%20security&amp;source=https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f">
+        <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+            <path
+                d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+        </svg>
+    </a>
+    <a target="_blank" rel="noopener noreferrer" aria-label="share Dive into Azure multi-tenant applications security on reddit"
+        href="https://reddit.com/submit?url=https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f&title=Dive%20into%20Azure%20multi-tenant%20applications%20security">
+        <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+            <path
+                d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+        </svg>
+    </a>
+    <a target="_blank" rel="noopener noreferrer" aria-label="share Dive into Azure multi-tenant applications security on facebook"
+        href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f">
+        <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+            <path
+                d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+        </svg>
+    </a>
+    <a target="_blank" rel="noopener noreferrer" aria-label="share Dive into Azure multi-tenant applications security on whatsapp"
+        href="https://api.whatsapp.com/send?text=Dive%20into%20Azure%20multi-tenant%20applications%20security%20-%20https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f">
+        <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+            <path
+                d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+        </svg>
+    </a>
+    <a target="_blank" rel="noopener noreferrer" aria-label="share Dive into Azure multi-tenant applications security on telegram"
+        href="https://telegram.me/share/url?text=Dive%20into%20Azure%20multi-tenant%20applications%20security&amp;url=https%3a%2f%2fsoroganoth.com%2fpost%2fresearch%2fmulti_tenant_applications_security%2f">
+        <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+            <path
+                d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+        </svg>
+    </a>
 </div>
-    </main><svg width="0" height="0" class="hidden">
-  <symbol viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" id="facebook">
-    <path d="M437 0H75C33.648 0 0 33.648 0 75v362c0 41.352 33.648 75 75 75h151V331h-60v-90h60v-61c0-49.629 40.371-90 90-90h91v90h-91v61h91l-15 90h-76v181h121c41.352 0 75-33.648 75-75V75c0-41.352-33.648-75-75-75zm0 0"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.001 18.001" id="twitter">
-    <path d="M15.891 4.013c.808-.496 1.343-1.173 1.605-2.034a8.68 8.68 0 0 1-2.351.861c-.703-.756-1.593-1.14-2.66-1.14-1.043 0-1.924.366-2.643 1.078a3.56 3.56 0 0 0-1.076 2.605c0 .309.039.585.117.819-3.076-.105-5.622-1.381-7.628-3.837-.34.601-.51 1.213-.51 1.846 0 1.301.549 2.332 1.645 3.089-.625-.053-1.176-.211-1.645-.47 0 .929.273 1.705.82 2.388a3.623 3.623 0 0 0 2.115 1.291c-.312.08-.641.118-.979.118-.312 0-.533-.026-.664-.083.23.757.664 1.371 1.291 1.841a3.652 3.652 0 0 0 2.152.743C4.148 14.173 2.625 14.69.902 14.69c-.422 0-.721-.006-.902-.038 1.697 1.102 3.586 1.649 5.676 1.649 2.139 0 4.029-.542 5.674-1.626 1.645-1.078 2.859-2.408 3.639-3.974a10.77 10.77 0 0 0 1.172-4.892v-.468a7.788 7.788 0 0 0 1.84-1.921 8.142 8.142 0 0 1-2.11.593z"
-      ></path>
-  </symbol>
-  <symbol aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="mail">
-    <path  d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="calendar">
-    <path d="M452 40h-24V0h-40v40H124V0H84v40H60C26.916 40 0 66.916 0 100v352c0 33.084 26.916 60 60 60h392c33.084 0 60-26.916 60-60V100c0-33.084-26.916-60-60-60zm20 412c0 11.028-8.972 20-20 20H60c-11.028 0-20-8.972-20-20V188h432v264zm0-304H40v-48c0-11.028 8.972-20 20-20h24v40h40V80h264v40h40V80h24c11.028 0 20 8.972 20 20v48z"></path>
-    <path d="M76 230h40v40H76zm80 0h40v40h-40zm80 0h40v40h-40zm80 0h40v40h-40zm80 0h40v40h-40zM76 310h40v40H76zm80 0h40v40h-40zm80 0h40v40h-40zm80 0h40v40h-40zM76 390h40v40H76zm80 0h40v40h-40zm80 0h40v40h-40zm80 0h40v40h-40zm80-80h40v40h-40z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="github">
-    <path d="M255.968 5.329C114.624 5.329 0 120.401 0 262.353c0 113.536 73.344 209.856 175.104 243.872 12.8 2.368 17.472-5.568 17.472-12.384 0-6.112-.224-22.272-.352-43.712-71.2 15.52-86.24-34.464-86.24-34.464-11.616-29.696-28.416-37.6-28.416-37.6-23.264-15.936 1.728-15.616 1.728-15.616 25.696 1.824 39.2 26.496 39.2 26.496 22.848 39.264 59.936 27.936 74.528 21.344 2.304-16.608 8.928-27.936 16.256-34.368-56.832-6.496-116.608-28.544-116.608-127.008 0-28.064 9.984-51.008 26.368-68.992-2.656-6.496-11.424-32.64 2.496-68 0 0 21.504-6.912 70.4 26.336 20.416-5.696 42.304-8.544 64.096-8.64 21.728.128 43.648 2.944 64.096 8.672 48.864-33.248 70.336-26.336 70.336-26.336 13.952 35.392 5.184 61.504 2.56 68 16.416 17.984 26.304 40.928 26.304 68.992 0 98.72-59.84 120.448-116.864 126.816 9.184 7.936 17.376 23.616 17.376 47.584 0 34.368-.32 62.08-.32 70.496 0 6.88 4.608 14.88 17.6 12.352C438.72 472.145 512 375.857 512 262.353 512 120.401 397.376 5.329 255.968 5.329z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 212" id="gitlab">
-    <path d="M12.3 74.7h54L43.3 3c-1-3.6-6.4-3.6-7.6 0L12.3 74.8z" />
-    <path d="M12.3 74.7L.5 111c-1 3.2 0 6.8 3 8.8l101.6 74-92.5-119z"/>
-    <path d="M105 193.7l-38.6-119h-54l92.7 119z"/>
-    <path d="M105 193.7l38.7-119H66.4l38.7 119z"/>
-    <path d="M105 193.7l38.7-119H198l-93 119z"/>
-    <path d="M198 74.7l11.6 36.2c1 3 0 6.6-3 8.6l-101.5 74 93-119z"/>
-    <path d="M198 74.7h-54.3L167 3c1.2-3.6 6.4-3.6 7.6 0L198 74.8z"/> 
-  </symbol>
-  <symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="rss">
-    <circle cx="3.429" cy="20.571" r="3.429"></circle>
-    <path d="M11.429 24h4.57C15.999 15.179 8.821 8.001 0 8v4.572c6.302.001 11.429 5.126 11.429 11.428z"></path>
-    <path d="M24 24C24 10.766 13.234 0 0 0v4.571c10.714 0 19.43 8.714 19.43 19.429z"></path>
-  </symbol>
-  <symbol viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" id="linkedin">
-    <path d="M437 0H75C33.648 0 0 33.648 0 75v362c0 41.352 33.648 75 75 75h362c41.352 0 75-33.648 75-75V75c0-41.352-33.648-75-75-75zM181 406h-60V196h60zm0-240h-60v-60h60zm210 240h-60V286c0-16.54-13.46-30-30-30s-30 13.46-30 30v120h-60V196h60v11.309C286.719 202.422 296.93 196 316 196c40.691.043 75 36.547 75 79.688zm0 0"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 612 612" id="to-top">
-    <path d="M604.501 440.509L325.398 134.956c-5.331-5.357-12.423-7.627-19.386-7.27-6.989-.357-14.056 1.913-19.387 7.27L7.499 440.509c-9.999 10.024-9.999 26.298 0 36.323s26.223 10.024 36.222 0l262.293-287.164L568.28 476.832c9.999 10.024 26.222 10.024 36.221 0 9.999-10.023 9.999-26.298 0-36.323z"></path>
-  </symbol>
-  <symbol viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" id="carly">
-    <path d="M504.971 239.029L448 182.059V84c0-46.317-37.682-84-84-84h-44c-13.255 0-24 10.745-24 24s10.745 24 24 24h44c19.851 0 36 16.149 36 36v108c0 6.365 2.529 12.47 7.029 16.971L454.059 256l-47.029 47.029A24.002 24.002 0 0 0 400 320v108c0 19.851-16.149 36-36 36h-44c-13.255 0-24 10.745-24 24s10.745 24 24 24h44c46.318 0 84-37.683 84-84v-98.059l56.971-56.971c9.372-9.372 9.372-24.568 0-33.941zM112 192V84c0-19.851 16.149-36 36-36h44c13.255 0 24-10.745 24-24S205.255 0 192 0h-44c-46.318 0-84 37.683-84 84v98.059l-56.971 56.97c-9.373 9.373-9.373 24.568 0 33.941L64 329.941V428c0 46.317 37.682 84 84 84h44c13.255 0 24-10.745 24-24s-10.745-24-24-24h-44c-19.851 0-36-16.149-36-36V320c0-6.365-2.529-12.47-7.029-16.971L57.941 256l47.029-47.029A24.002 24.002 0 0 0 112 192z"></path>
-  </symbol>
-  <symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="copy">
-    <path d="M23 2.75A2.75 2.75 0 0 0 20.25 0H8.75A2.75 2.75 0 0 0 6 2.75v13.5A2.75 2.75 0 0 0 8.75 19h11.5A2.75 2.75 0 0 0 23 16.25zM18.25 14.5h-7.5a.75.75 0 0 1 0-1.5h7.5a.75.75 0 0 1 0 1.5zm0-3h-7.5a.75.75 0 0 1 0-1.5h7.5a.75.75 0 0 1 0 1.5zm0-3h-7.5a.75.75 0 0 1 0-1.5h7.5a.75.75 0 0 1 0 1.5z"></path>
-    <path d="M8.75 20.5a4.255 4.255 0 0 1-4.25-4.25V2.75c0-.086.02-.166.025-.25H3.75A2.752 2.752 0 0 0 1 5.25v16A2.752 2.752 0 0 0 3.75 24h12a2.752 2.752 0 0 0 2.75-2.75v-.75z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512.001 512.001" id="closeme">
-    <path d="M284.286 256.002L506.143 34.144c7.811-7.811 7.811-20.475 0-28.285-7.811-7.81-20.475-7.811-28.285 0L256 227.717 34.143 5.859c-7.811-7.811-20.475-7.811-28.285 0-7.81 7.811-7.811 20.475 0 28.285l221.857 221.857L5.858 477.859c-7.811 7.811-7.811 20.475 0 28.285a19.938 19.938 0 0 0 14.143 5.857 19.94 19.94 0 0 0 14.143-5.857L256 284.287l221.857 221.857c3.905 3.905 9.024 5.857 14.143 5.857s10.237-1.952 14.143-5.857c7.811-7.811 7.811-20.475 0-28.285L284.286 256.002z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="open-menu">
-    <path d="M492 236H20c-11.046 0-20 8.954-20 20s8.954 20 20 20h472c11.046 0 20-8.954 20-20s-8.954-20-20-20zm0-160H20C8.954 76 0 84.954 0 96s8.954 20 20 20h472c11.046 0 20-8.954 20-20s-8.954-20-20-20zm0 320H20c-11.046 0-20 8.954-20 20s8.954 20 20 20h472c11.046 0 20-8.954 20-20s-8.954-20-20-20z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="instagram">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id=youtube>
-    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="stackoverflow">
-    <path d="M21 27v-8h3v11H0V19h3v8h18z"></path><path d="M17.1.2L15 1.8l7.9 10.6 2.1-1.6L17.1.2zm3.7 14.7L10.6 6.4l1.7-2 10.2 8.5-1.7 2zM7.2 12.3l12 5.6 1.1-2.4-12-5.6-1.1 2.4zm-1.8 6.8l13.56 1.96.17-2.38-13.26-2.55-.47 2.97zM19 25H5v-3h14v3z"></path>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="xing">
-    <path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/>
-  </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 71 55" id="discord">
-    <path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z"/>
-  </symbol>
-</svg>
-
-
+  </footer>
+</article>
+    </main>
+    
 <footer class="footer">
-  <div class="footer_inner wrap pale">
-    <img src='https://soroganoth.com/icons/apple-touch-icon.png' class="icon icon_2 transparent" alt="Soroganoth">
-    <p>Copyright&nbsp;2022-&nbsp;<span class="year"></span>&nbsp;SOROGANOTH. All Rights Reserved</p><a class="to_top" href="#documentTop">
-  <svg class="icon">
-  <title>to-top</title>
-  <use xlink:href="#to-top"></use>
-</svg>
-
+    <span>&copy; 2023 <a href="https://soroganoth.com/">Soroganoth</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
 </a>
 
-  </div>
-</footer>
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
 
-<script type="text/javascript" src="https://soroganoth.com/en/js/bundle.0916babe202e8bc7785a506155b44e8bc87bc530aa704bca30d5c08b4f968f393d3defccb86efeb1314a50d5f9085ce9cb7f2ac71d5afeee0d6da80f01193953.js" integrity="sha512-CRa6viAui8d4WlBhVbROi8h7xTCqcEvKMNXAi0&#43;Wjzk9Pe/MuG7&#43;sTFKUNX5CFzpy38qxx1a/u4NbagPARk5Uw==" crossorigin="anonymous"></script>
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
 
-  <script src="https://soroganoth.com/js/search.min.33adba5397fc19b99d9ef3e1f6a653c3c58c90671a255c20f9509d11ab8d404ae61a0ba121cd392ad3219e01ea46d68c02c1b2a51f3542ef606940c2542a3d51.js"></script>
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
 
-  </body>
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
 </html>

@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Shorts on Soroganoth</title>
+    <title>shorts on Soroganoth</title>
     <link>https://soroganoth.com/post/shorts/</link>
-    <description>Recent content in Shorts on Soroganoth</description>
-    <generator>Hugo -- gohugo.io</generator><atom:link href="https://soroganoth.com/post/shorts/index.xml" rel="self" type="application/rss+xml" />
+    <description>Recent content in shorts on Soroganoth</description>
+    <image>
+      <title>Soroganoth</title>
+      <url>https://soroganoth.com/owo.png</url>
+      <link>https://soroganoth.com/owo.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Sat, 06 Aug 2022 19:51:51 +0200</lastBuildDate><atom:link href="https://soroganoth.com/post/shorts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Deploy Azure Sentinel Watchlists with Bicep</title>
+      <link>https://soroganoth.com/post/shorts/sentinel_bicep_watchlist/</link>
+      <pubDate>Sat, 06 Aug 2022 19:51:51 +0200</pubDate>
+      
+      <guid>https://soroganoth.com/post/shorts/sentinel_bicep_watchlist/</guid>
+      <description>I recently found myself needing to create some Azure watchlists using Bicep templates.
+As there did not seem to be much documentation about this, and my lacking understanding of child resources in Bicep, this took way longer then it needed to be, so i figured I would document this.
+Microsoft Bicep Watchlist Reference: Bicep Reference
+Quick Comments about the template A Watchlist cannot be empty, so you need to some example value.</description>
+    </item>
+    
   </channel>
 </rss>

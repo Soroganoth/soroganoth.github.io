@@ -1,10 +1,60 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Tags on Soroganoth</title>
     <link>https://soroganoth.com/tags/</link>
     <description>Recent content in Tags on Soroganoth</description>
+    <image>
+      <title>Soroganoth</title>
+      <url>https://soroganoth.com/owo.png</url>
+      <link>https://soroganoth.com/owo.png</link>
+    </image>
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Sat, 11 Feb 2023 20:24:31 +0100</lastBuildDate><atom:link href="https://soroganoth.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Azure AD Security</title>
+      <link>https://soroganoth.com/tags/azure-ad-security/</link>
+      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/tags/azure-ad-security/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Azure Security</title>
+      <link>https://soroganoth.com/tags/azure-security/</link>
+      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/tags/azure-security/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Service Principal</title>
+      <link>https://soroganoth.com/tags/service-principal/</link>
+      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/tags/service-principal/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Bicep</title>
+      <link>https://soroganoth.com/tags/bicep/</link>
+      <pubDate>Sat, 06 Aug 2022 19:51:51 +0200</pubDate>
+      
+      <guid>https://soroganoth.com/tags/bicep/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Sentinel</title>
+      <link>https://soroganoth.com/tags/sentinel/</link>
+      <pubDate>Sat, 06 Aug 2022 19:51:51 +0200</pubDate>
+      
+      <guid>https://soroganoth.com/tags/sentinel/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>

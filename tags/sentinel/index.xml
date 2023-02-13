@@ -1,35 +1,16 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Soroganoth</title>
-    <link>https://soroganoth.com/</link>
-    <description>Recent content on Soroganoth</description>
+    <title>Sentinel on Soroganoth</title>
+    <link>https://soroganoth.com/tags/sentinel/</link>
+    <description>Recent content in Sentinel on Soroganoth</description>
     <image>
       <title>Soroganoth</title>
       <url>https://soroganoth.com/owo.png</url>
       <link>https://soroganoth.com/owo.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 11 Feb 2023 20:24:31 +0100</lastBuildDate><atom:link href="https://soroganoth.com/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Dive into Azure multi-tenant applications security</title>
-      <link>https://soroganoth.com/post/research/multi_tenant_applications_security/</link>
-      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
-      
-      <guid>https://soroganoth.com/post/research/multi_tenant_applications_security/</guid>
-      <description>Deep dive into Azure AD application security.</description>
-    </item>
-    
-    
-    <item>
-      <title>About Me</title>
-      <link>https://soroganoth.com/about/abooutme/</link>
-      <pubDate>Sat, 31 Dec 2022 00:00:00 +0000</pubDate>
-      
-      <guid>https://soroganoth.com/about/abooutme/</guid>
-      <description>About me</description>
-    </item>
-    
+    <lastBuildDate>Sat, 06 Aug 2022 19:51:51 +0200</lastBuildDate><atom:link href="https://soroganoth.com/tags/sentinel/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Deploy Azure Sentinel Watchlists with Bicep</title>
       <link>https://soroganoth.com/post/shorts/sentinel_bicep_watchlist/</link>
@@ -41,7 +22,6 @@ As there did not seem to be much documentation about this, and my lacking unders
 Microsoft Bicep Watchlist Reference: Bicep Reference
 Quick Comments about the template A Watchlist cannot be empty, so you need to some example value.</description>
     </item>
-    
     
   </channel>
 </rss>
