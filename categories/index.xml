@@ -9,25 +9,6 @@
       <url>https://soroganoth.com/owo.png</url>
       <link>https://soroganoth.com/owo.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sat, 11 Feb 2023 20:24:31 +0100</lastBuildDate><atom:link href="https://soroganoth.com/categories/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Azure AD</title>
-      <link>https://soroganoth.com/categories/azure-ad/</link>
-      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
-      
-      <guid>https://soroganoth.com/categories/azure-ad/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Research</title>
-      <link>https://soroganoth.com/categories/research/</link>
-      <pubDate>Sat, 11 Feb 2023 20:24:31 +0100</pubDate>
-      
-      <guid>https://soroganoth.com/categories/research/</guid>
-      <description></description>
-    </item>
-    
+    <generator>Hugo -- gohugo.io</generator><atom:link href="https://soroganoth.com/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
