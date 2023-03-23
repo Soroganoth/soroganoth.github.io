@@ -3,10 +3,43 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://soroganoth.com/</loc>
-    <lastmod>2023-02-16T14:46:53+01:00</lastmod>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/categories/azure/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/tags/azure-security/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/categories/azure-security/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/tags/azure-vm-security/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/categories/azure-vm-security/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/post/research/azure_vm_security/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
   </url><url>
     <loc>https://soroganoth.com/categories/</loc>
-    <lastmod>2023-02-16T14:46:53+01:00</lastmod>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/post/research/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/post/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/series/securing-azure-vms/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/series/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
+  </url><url>
+    <loc>https://soroganoth.com/tags/</loc>
+    <lastmod>2023-03-03T18:04:07+01:00</lastmod>
   </url><url>
     <loc>https://soroganoth.com/tags/microsoft-graph/</loc>
     <lastmod>2023-02-16T14:46:53+01:00</lastmod>
@@ -14,16 +47,10 @@
     <loc>https://soroganoth.com/categories/microsoft-graph/</loc>
     <lastmod>2023-02-16T14:46:53+01:00</lastmod>
   </url><url>
-    <loc>https://soroganoth.com/post/</loc>
-    <lastmod>2023-02-16T14:46:53+01:00</lastmod>
-  </url><url>
     <loc>https://soroganoth.com/post/shorts/api_call_for_graph_permissions/</loc>
     <lastmod>2023-02-16T14:46:53+01:00</lastmod>
   </url><url>
     <loc>https://soroganoth.com/post/shorts/</loc>
-    <lastmod>2023-02-16T14:46:53+01:00</lastmod>
-  </url><url>
-    <loc>https://soroganoth.com/tags/</loc>
     <lastmod>2023-02-16T14:46:53+01:00</lastmod>
   </url><url>
     <loc>https://soroganoth.com/about/abooutme/</loc>
@@ -45,17 +72,11 @@
   </url><url>
     <loc>https://soroganoth.com/categories/azure-ad-security/</loc>
   </url><url>
-    <loc>https://soroganoth.com/tags/azure-security/</loc>
-  </url><url>
     <loc>https://soroganoth.com/post/research/multi_tenant_applications_security/</loc>
-  </url><url>
-    <loc>https://soroganoth.com/post/research/</loc>
   </url><url>
     <loc>https://soroganoth.com/categories/research/</loc>
   </url><url>
     <loc>https://soroganoth.com/search/</loc>
-  </url><url>
-    <loc>https://soroganoth.com/series/</loc>
   </url><url>
     <loc>https://soroganoth.com/tags/service-principal/</loc>
   </url>

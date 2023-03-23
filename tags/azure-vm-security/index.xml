@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Azure VM Security on Soroganoth</title>
+    <link>https://soroganoth.com/tags/azure-vm-security/</link>
+    <description>Recent content in Azure VM Security on Soroganoth</description>
+    <image>
+      <title>Soroganoth</title>
+      <url>https://soroganoth.com/owo.png</url>
+      <link>https://soroganoth.com/owo.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Fri, 03 Mar 2023 18:04:07 +0100</lastBuildDate><atom:link href="https://soroganoth.com/tags/azure-vm-security/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Azure VM Security: Part 1: Moving from management plane to data plane and the Run Command</title>
+      <link>https://soroganoth.com/post/research/azure_vm_security/</link>
+      <pubDate>Fri, 03 Mar 2023 18:04:07 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/post/research/azure_vm_security/</guid>
+      <description>Azure VM Security: Part 1: Moving from management plane to data plane and the Run Command</description>
+    </item>
+    
+  </channel>
+</rss>

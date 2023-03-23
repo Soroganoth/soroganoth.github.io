@@ -9,7 +9,17 @@
       <url>https://soroganoth.com/owo.png</url>
       <link>https://soroganoth.com/owo.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator><atom:link href="https://soroganoth.com/post/research/index.xml" rel="self" type="application/rss+xml" />
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Fri, 03 Mar 2023 18:04:07 +0100</lastBuildDate><atom:link href="https://soroganoth.com/post/research/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Azure VM Security: Part 1: Moving from management plane to data plane and the Run Command</title>
+      <link>https://soroganoth.com/post/research/azure_vm_security/</link>
+      <pubDate>Fri, 03 Mar 2023 18:04:07 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/post/research/azure_vm_security/</guid>
+      <description>Azure VM Security: Part 1: Moving from management plane to data plane and the Run Command</description>
+    </item>
+    
     <item>
       <title>Deep dive into some interesting security properties of Azure AD multi-tenant applications</title>
       <link>https://soroganoth.com/post/research/multi_tenant_applications_security/</link>

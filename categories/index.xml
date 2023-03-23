@@ -10,7 +10,34 @@
       <link>https://soroganoth.com/owo.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 16 Feb 2023 14:46:53 +0100</lastBuildDate><atom:link href="https://soroganoth.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 03 Mar 2023 18:04:07 +0100</lastBuildDate><atom:link href="https://soroganoth.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Azure</title>
+      <link>https://soroganoth.com/categories/azure/</link>
+      <pubDate>Fri, 03 Mar 2023 18:04:07 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/categories/azure/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Azure Security</title>
+      <link>https://soroganoth.com/categories/azure-security/</link>
+      <pubDate>Fri, 03 Mar 2023 18:04:07 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/categories/azure-security/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Azure VM Security</title>
+      <link>https://soroganoth.com/categories/azure-vm-security/</link>
+      <pubDate>Fri, 03 Mar 2023 18:04:07 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/categories/azure-vm-security/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Microsoft Graph</title>
       <link>https://soroganoth.com/categories/microsoft-graph/</link>

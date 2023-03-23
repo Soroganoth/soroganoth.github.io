@@ -10,7 +10,16 @@
       <link>https://soroganoth.com/owo.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 16 Feb 2023 14:46:53 +0100</lastBuildDate><atom:link href="https://soroganoth.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 03 Mar 2023 18:04:07 +0100</lastBuildDate><atom:link href="https://soroganoth.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Azure VM Security: Part 1: Moving from management plane to data plane and the Run Command</title>
+      <link>https://soroganoth.com/post/research/azure_vm_security/</link>
+      <pubDate>Fri, 03 Mar 2023 18:04:07 +0100</pubDate>
+      
+      <guid>https://soroganoth.com/post/research/azure_vm_security/</guid>
+      <description>Azure VM Security: Part 1: Moving from management plane to data plane and the Run Command</description>
+    </item>
+    
     <item>
       <title>Programmatically getting Microsoft Graph permissions</title>
       <link>https://soroganoth.com/post/shorts/api_call_for_graph_permissions/</link>
